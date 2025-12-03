@@ -44,12 +44,35 @@ public class SortingPanel extends JPanel {
         int width = getWidth();
         int height = getHeight();
         int barWidth = width / array.length;
-        int maxValue = getMaxValue();
+        
+        // Find max absolute value for scaling
+        int maxAbsValue = getMaxAbsValue();
+        
+        // Calculate middle line (x-axis position)
+        int middleY = height / 2;
+        
+        // Draw x-axis (middle line)
+        g.setColor(Color.BLACK);
+        g.drawLine(0, middleY, width, middleY);
+        g.drawString("0", 5, middleY - 5);
+        
+        // Available height for bars (half of panel minus margins)
+        int availableHeight = (height / 2) - 40;
         
         for (int i = 0; i < array.length; i++) {
-            int barHeight = (int) ((double) array[i] / maxValue * (height - 50));
+            int value = array[i];
+            int barHeight = (int) ((double) Math.abs(value) / maxAbsValue * availableHeight);
             int x = i * barWidth;
-            int y = height - barHeight - 30;
+            int y;
+            
+            // Determine bar position based on positive or negative
+            if (value >= 0) {
+                // Positive: draw upward from middle
+                y = middleY - barHeight;
+            } else {
+                // Negative: draw downward from middle
+                y = middleY;
+            }
             
             // Set color based on state
             if (i <= sortedUpTo) {
@@ -60,21 +83,39 @@ public class SortingPanel extends JPanel {
                 g.setColor(Color.BLUE);
             }
             
+            // Draw bar
             g.fillRect(x + 2, y, barWidth - 4, barHeight);
             g.setColor(Color.BLACK);
             g.drawRect(x + 2, y, barWidth - 4, barHeight);
             
-            // Draw value
-            String value = String.valueOf(array[i]);
-            g.drawString(value, x + barWidth / 2 - 10, height - 10);
+            // Draw value below the bar
+            String valueStr = String.valueOf(value);
+            FontMetrics fm = g.getFontMetrics();
+            int textWidth = fm.stringWidth(valueStr);
+            
+            if (value >= 0) {
+                // Positive: draw above the bar
+                g.drawString(valueStr, x + (barWidth - textWidth) / 2, y - 5);
+            } else {
+                // Negative: draw below the bar
+                g.drawString(valueStr, x + (barWidth - textWidth) / 2, y + barHeight + 15);
+            }
         }
+        
+        // Draw labels for positive and negative sides
+        g.setColor(Color.GRAY);
+        g.drawString("Positive →", width - 100, 20);
+        g.drawString("Negative →", width - 100, height - 10);
     }
     
-    private int getMaxValue() {
-        int max = array[0];
+    private int getMaxAbsValue() {
+        int maxAbs = Math.abs(array[0]);
         for (int value : array) {
-            if (value > max) max = value;
+            int abs = Math.abs(value);
+            if (abs > maxAbs) {
+                maxAbs = abs;
+            }
         }
-        return max;
+        return maxAbs == 0 ? 1 : maxAbs; // Avoid division by zero
     }
 }
